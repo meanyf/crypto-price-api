@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <body>
+    <h3>Login (POST /token)</h3>
+    <form method="post" action="http://127.0.0.1:8000/token">
+      <label>username: <input name="username" value="johndoe"></label><br>
+      <label>password: <input name="password" type="password" value="secret"></label><br>
+      <button type="submit">Login</button>
+    </form>
+
+    <p>После submit в ответе будет JSON, но браузер сохранит cookie от сервера.</p>
+    <p>Открой <a href="http://127.0.0.1:8000/users/me/" target="_blank">/users/me/</a> — запрос пойдёт с cookie и вернёт данные.</p>
+  </body>
+</html>
