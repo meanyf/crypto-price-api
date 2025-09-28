@@ -48,3 +48,5 @@ env/
 
 .history
 tempCodeRunnerFile.py
+.ruff_cache
+token.json

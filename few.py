@@ -101,7 +101,7 @@ def test_protected_endpoints(access_token):
 
 if __name__ == "__main__":
     print("🔐 Получение access token...")
-    print(f"Используемые учетные данные:")
+    print("Используемые учетные данные:")
     print(f"Username: {USERNAME}")
     print(f"Password: {PASSWORD}")
     print("-" * 50)

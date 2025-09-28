@@ -1,7 +1,5 @@
 # config.py
 from pydantic_settings import BaseSettings
-from typing import Optional
-from datetime import timedelta
 
 
 class Settings(BaseSettings):

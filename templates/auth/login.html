@@ -1,0 +1,25 @@
+<!-- login.html -->
+
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body { font-family: Arial; max-width: 400px; margin: 50px auto; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        input, button { padding: 10px; font-size: 16px; }
+        a { display: block; margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h2>Login</h2>
+    <form method="post" action="/auth/token/">
+        <input type="text" name="username" placeholder="Username" value="johndoe" />
+        <input type="password" name="password" placeholder="Password" value="secret" />
+        <button type="submit">Login</button>
+    </form>
+    <a href="/users/me/">Go to /users/me/</a>
+</body>
+</html>

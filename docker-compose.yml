@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: crypto_postgres15
+    restart: always  # Контейнер будет перезапускаться при сбоях или перезагрузке хоста
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: crypto-db
+    ports:
+      - "5435:5432"  # Пробрасываем порт для доступа к базе данных
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Монтируем данные базы данных в volume
+
+  app:
+    build: .  # Сборка образа из текущей директории, где лежит Dockerfile
+    container_name: crypto-fastapi
+    restart: unless-stopped  # Контейнер будет перезапускаться, если не был остановлен вручную
+    env_file: .env
+    ports:
+      - "8000:8000"  # Пробрасываем порт для доступа к приложению
+    volumes:
+      - ./app:/app/app  # Монтируем локальную папку ./app в /app/app контейнера
+      - ./alembic:/app/alembic  # Монтируем папку с Alembic в контейнер
+      - ./alembic.ini:/app/alembic.ini  # Монтируем конфиг alembic.ini в контейнер
+volumes:
+  postgres_data:  # Определяем volume для хранения данных базы данных
