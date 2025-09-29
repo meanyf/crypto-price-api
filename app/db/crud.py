@@ -1,7 +1,9 @@
 # crud.py
-from app.schemas.user import User, UserInDB
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from app.db.models import User
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+def get_user(db: Session, username: str) -> User | None:
+    return db.execute(
+        select(User).where(User.username == username)
+    ).scalar_one_or_none()

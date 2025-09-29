@@ -7,3 +7,7 @@ PyJWT==2.10.1
 python_jose==3.3.0
 Requests==2.32.5
 alembic
+uvicorn
+psycopg[binary]>=3.1,<4.0 # Библиотека для работы с PostgreSQL
+jinja2
+python-multipart

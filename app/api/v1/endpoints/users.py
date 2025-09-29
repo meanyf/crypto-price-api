@@ -1,7 +1,7 @@
 # users.py
 from typing import Annotated
 from fastapi import APIRouter, Depends
-from app.schemas.user import User, UserInDB
+from app.schemas.user import User
 from app.api.deps import get_current_user
 
 users_router = APIRouter(prefix="/users", tags=["users"])

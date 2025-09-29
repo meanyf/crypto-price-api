@@ -18,6 +18,8 @@ services:
     build: .  # Сборка образа из текущей директории, где лежит Dockerfile
     container_name: crypto-fastapi
     restart: unless-stopped  # Контейнер будет перезапускаться, если не был остановлен вручную
+    environment:
+     - PYTHONUNBUFFERED=1
     env_file: .env
     ports:
       - "8000:8000"  # Пробрасываем порт для доступа к приложению
@@ -25,5 +27,6 @@ services:
       - ./app:/app/app  # Монтируем локальную папку ./app в /app/app контейнера
       - ./alembic:/app/alembic  # Монтируем папку с Alembic в контейнер
       - ./alembic.ini:/app/alembic.ini  # Монтируем конфиг alembic.ini в контейнер
+      - ./templates:/app/templates
 volumes:
   postgres_data:  # Определяем volume для хранения данных базы данных

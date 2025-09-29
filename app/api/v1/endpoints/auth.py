@@ -7,10 +7,11 @@ from typing import Annotated
 from pydantic import BaseModel
 
 from app.core.security import authenticate_user, create_access_token
-from app.db.session import fake_users_db
 from app.core.config import settings
-from app.schemas.user import User, UserInDB
 from app.schemas.token import Token, TokenData
+from app.api.deps import get_db
+from sqlalchemy.orm import Session
+
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -33,10 +34,11 @@ def index(request: Request):
 
 @auth_router.post("/token")
 async def login_for_access_token(
+    db: Annotated[Session, Depends(get_db)],
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
