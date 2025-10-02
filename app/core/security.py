@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import jwt
 from app.core.config import settings
-from app.db.crud import get_user
+from app.db import crud
 from sqlalchemy.orm import Session
 
 
@@ -48,10 +48,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 def authenticate_user(db: Session, username: str, password: str):
-    user = get_user(db, username)
+    user = crud.get_user(db, username)
     if not user:
         return False
     if not verify_password(password, user.password):
         return False
     return user
-

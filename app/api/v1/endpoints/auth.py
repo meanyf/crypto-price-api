@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.schemas.token import Token, TokenData
 from app.api.deps import get_db
 from sqlalchemy.orm import Session
+from app.services.auth_service import login_user, register_user, make_token_for_user, get_cookie_from_token
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -32,35 +33,23 @@ def index(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
 
 
-@auth_router.post("/token")
-async def login_for_access_token(
+@auth_router.post("/login")
+async def login(
     db: Annotated[Session, Depends(get_db)],
     response: Response,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+):
+    user = login_user(db, form_data.username, form_data.password)
+    token, expires = make_token_for_user(user)
+    response.set_cookie(**get_cookie_from_token(token, expires))
 
-    access_token_expires = timedelta(minutes=settings.ACCESS_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
 
-    # Устанавливаем cookie с токеном
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=False,  # localhost иначе не примет
-        samesite="lax",  # вместо "none"
-        max_age=int(settings.ACCESS_EXPIRE_MINUTES * 60),
-        path="/",
-    )
-
-    # По-прежнему возвращаем тело ответа с токеном (опционально)
-    return Token(access_token=access_token, token_type="bearer")
+@auth_router.post("/register")
+async def register(
+    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+):
+    user = register_user(db, form_data.username, form_data.password)
+    token, expires = make_token_for_user(user)
+    response.set_cookie(**get_cookie_from_token(token, expires))

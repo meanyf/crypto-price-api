@@ -15,10 +15,16 @@
 </head>
 <body>
     <h2>Login</h2>
-    <form method="post" action="/auth/token/">
+    <form method="post" action="/auth/login/">
         <input type="text" name="username" placeholder="Username" value="johndoe" />
         <input type="password" name="password" placeholder="Password" value="secret" />
         <button type="submit">Login</button>
+    </form>
+    <h2>Register</h2>
+    <form method="post" action="/auth/register/">
+        <input type="text" name="username" placeholder="Username" value="johndoe" />
+        <input type="password" name="password" placeholder="Password" value="secret" />
+        <button type="submit">Register</button>
     </form>
     <a href="/users/me/">Go to /users/me/</a>
 </body>
