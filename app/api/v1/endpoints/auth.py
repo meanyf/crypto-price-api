@@ -44,7 +44,7 @@ async def login(
     response.set_cookie(**get_cookie_from_token(token, expires))
 
 
-@auth_router.post("/register")
+@auth_router.post("/register",status_code=status.HTTP_201_CREATED)
 async def register(
     db: Annotated[Session, Depends(get_db)],
     response: Response,
@@ -53,3 +53,5 @@ async def register(
     user = register_user(db, form_data.username, form_data.password)
     token, expires = make_token_for_user(user)
     response.set_cookie(**get_cookie_from_token(token, expires))
+    return {"token": token}
+ 

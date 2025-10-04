@@ -1,5 +1,6 @@
 # auth_service.py
 
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.db.models import User
 from app.db.crud import get_user, create_user
@@ -8,10 +9,12 @@ from fastapi import APIRouter, Depends, Response, HTTPException, status
 from app.core.config import settings
 from app.core.security import authenticate_user, create_access_token
 from datetime import datetime, timedelta, timezone
+from app.core.exceptions import UserAlreadyExists, InvalidCredentials
+
 
 def register_user(db: Session, username: str, password: str) -> User:
     if get_user(db, username):
-        raise ValueError("Username already exists")
+        raise UserAlreadyExists("Пользователь с таким именем уже существует")
 
     user = create_user(db, username=username, password=password)
     db.commit()
@@ -21,11 +24,7 @@ def register_user(db: Session, username: str, password: str) -> User:
 def login_user(db: Session, username: str, password: str) -> User:
     user = authenticate_user(db, username, password)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidCredentials('Логин - пароль')
     return user
 
 
@@ -45,4 +44,3 @@ def get_cookie_from_token(token: str, expires: timedelta) -> dict:
         "max_age": int(expires.total_seconds()),
         "path": "/",
     }
-
