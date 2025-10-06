@@ -11,3 +11,9 @@ class InvalidCredentials(DomainError):
     status_code = 401
 
 
+class ExternalServiceError(DomainError):
+    status_code = 502
+
+
+class ExternalTimeoutError(ExternalServiceError):
+    status_code = 504

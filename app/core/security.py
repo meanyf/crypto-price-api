@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
     async def __call__(self, request: Request) -> str | None:
+        print('getting token')
         # сначала пробуем куку
         token = request.cookies.get("access_token")
         if token:
