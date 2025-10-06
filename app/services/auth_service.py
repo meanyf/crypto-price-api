@@ -10,21 +10,24 @@ from app.core.config import settings
 from app.core.security import authenticate_user, create_access_token
 from datetime import datetime, timedelta, timezone
 from app.core.exceptions import UserAlreadyExists, InvalidCredentials
+from sqlalchemy.exc import IntegrityError
 
 
 def register_user(db: Session, username: str, password: str) -> User:
-    if get_user(db, username):
-        raise UserAlreadyExists("Пользователь с таким именем уже существует")
-
-    user = create_user(db, username=username, password=password)
-    db.commit()
+    user = create_user(db, username=username, password=password)  # add, без flush
+    try:
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        raise UserAlreadyExists("Пользователь с таким именем уже существует") from e
     db.refresh(user)
     return user
+
 
 def login_user(db: Session, username: str, password: str) -> User:
     user = authenticate_user(db, username, password)
     if not user:
-        raise InvalidCredentials('Логин - пароль')
+        raise InvalidCredentials('Неверные логин или пароль')
     return user
 
 

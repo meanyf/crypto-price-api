@@ -13,5 +13,4 @@ def create_user(db: Session, *, username: str, password: str) -> User:
     from app.core.security import get_password_hash
     user = User(username=username, password=get_password_hash(password))
     db.add(user)
-    db.flush()  # user.id уже доступен
     return user

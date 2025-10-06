@@ -11,3 +11,4 @@ uvicorn
 psycopg[binary]>=3.1,<4.0 # Библиотека для работы с PostgreSQL
 jinja2
 python-multipart
+httpx

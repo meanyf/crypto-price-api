@@ -50,3 +50,4 @@ env/
 tempCodeRunnerFile.py
 .ruff_cache
 token.json
+ver.py

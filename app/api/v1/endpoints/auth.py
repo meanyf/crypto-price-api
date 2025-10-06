@@ -12,17 +12,10 @@ from app.schemas.token import Token, TokenData
 from app.api.deps import get_db
 from sqlalchemy.orm import Session
 from app.services.auth_service import login_user, register_user, make_token_for_user, get_cookie_from_token
-
-
-auth_router = APIRouter(prefix="/auth", tags=["auth"])
-
-@auth_router.post("/logout")
-def logout(response: Response):
-    response.delete_cookie("access_token", path="/")
-    return {"msg": "Logged out"}
-
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+
+auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 templates = Jinja2Templates(directory="templates")
@@ -33,7 +26,7 @@ def index(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
 
 
-@auth_router.post("/login")
+@auth_router.post("/login", status_code=status.HTTP_200_OK)
 async def login(
     db: Annotated[Session, Depends(get_db)],
     response: Response,
@@ -42,9 +35,10 @@ async def login(
     user = login_user(db, form_data.username, form_data.password)
     token, expires = make_token_for_user(user)
     response.set_cookie(**get_cookie_from_token(token, expires))
+    return {"token": token}
 
 
-@auth_router.post("/register",status_code=status.HTTP_201_CREATED)
+@auth_router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     db: Annotated[Session, Depends(get_db)],
     response: Response,
@@ -54,4 +48,3 @@ async def register(
     token, expires = make_token_for_user(user)
     response.set_cookie(**get_cookie_from_token(token, expires))
     return {"token": token}
- 
