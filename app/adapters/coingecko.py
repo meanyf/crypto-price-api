@@ -23,7 +23,7 @@ class CoinGeckoClient(CoinGeckoClientPort):
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.get(url, params=params)
-        except httpx.ReadTimeout as e:
+        except httpx.TimeoutException as e:
             raise ExternalTimeoutError("CoinGecko timeout") from e
         except httpx.RequestError as e:
             raise ExternalServiceError("Failed to request CoinGecko") from e

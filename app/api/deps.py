@@ -39,7 +39,6 @@ async def get_current_user(
     except InvalidTokenError:
         print('tokenerror')
         raise credentials_exception
-    print(token_data.username)
     user = crud.get_user(db, username=token_data.username)   # <-- передаём db
     if user is None:
         raise credentials_exception

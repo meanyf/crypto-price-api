@@ -13,19 +13,7 @@ from passlib.context import CryptContext
 from app.core.config import settings
 from app.core.exceptions import DomainError
 
-import logging
-import sys
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,  # или DEBUG, если хочешь подробней
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],  # вывод в stdout для Docker
-)
-
-logger = logging.getLogger(__name__)
-
 app = FastAPI()
-logger.info("🚀 Приложение запущено!")
 
 from app.api.v1.api import api_router
 
