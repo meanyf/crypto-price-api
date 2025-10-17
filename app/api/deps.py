@@ -43,3 +43,10 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+from fastapi import Request
+from app.ports.coingecko_port import CoingeckoPort
+
+
+def get_coingecko_client(request: Request) -> CoingeckoPort:
+    return request.app.state.coingecko
