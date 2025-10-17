@@ -1,12 +1,10 @@
 # crypto_service.py
 
 from typing import List
-from app.core.ports import CoinGeckoClientPort
+from app.ports.coingecko_port import CoingeckoPort
 
 
-async def get_top_cryptos(
-    client: CoinGeckoClientPort, per_page: int = 10
-) -> List[dict]:
+async def get_top_cryptos(client: CoingeckoPort, per_page: int = 10) -> List[dict]:
     data = await client.fetch_markets(per_page=per_page)
     return [
         {

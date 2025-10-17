@@ -1,17 +1,32 @@
+# coingecko_adapter.py
+
 # coingecko.py
 
 import httpx
 from app.core.exceptions import ExternalServiceError, ExternalTimeoutError
-from app.core.ports import CoinGeckoClientPort
+from app.ports.coingecko_port import (
+    CoingeckoPort,
+    DEFAULT_VS_CURRENCY,
+    DEFAULT_PER_PAGE,
+    DEFAULT_PAGE,
+)
+
+from dataclasses import dataclass
 
 
-class CoinGeckoClient(CoinGeckoClientPort):
+@dataclass
+class CoinGeckoConfig:
+    timeout: float = 5.0
+    retries: int = 2
+
+
+class CoinGeckoClient(CoingeckoPort):
     BASE = "https://api.coingecko.com/api/v3"
 
-    def __init__(self, timeout: float = 5.0):
-        self.timeout = timeout
+    def __init__(self, http_config: CoinGeckoConfig):
+        self.timeout = http_config.timeout
 
-    async def fetch_markets(self, vs_currency="usd", per_page=10, page=1):
+    async def fetch_markets(self, vs_currency=DEFAULT_VS_CURRENCY, per_page=DEFAULT_PER_PAGE, page=DEFAULT_PAGE):
         url = f"{self.BASE}/coins/markets"
         params = {
             "vs_currency": vs_currency,
