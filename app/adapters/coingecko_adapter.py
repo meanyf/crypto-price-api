@@ -17,7 +17,7 @@ class CoinGeckoConfig:
     timeout: float = 5.0
 
 
-class CoinGeckoClient(CoingeckoPort):
+class CoinGeckoAdapter(CoingeckoPort):
     BASE = "https://api.coingecko.com/api/v3"
 
     def __init__(
@@ -42,7 +42,6 @@ class CoinGeckoClient(CoingeckoPort):
             "sparkline": "false",
         }
         try:
-            # пер-запросный timeout — адаптер контролирует таймаут
             resp = await self.client.get(path, params=params, timeout=self.timeout)
         except httpx.TimeoutException as e:
             raise ExternalTimeoutError("CoinGecko timeout") from e

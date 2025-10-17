@@ -4,32 +4,25 @@ from dataclasses import dataclass
 from fastapi import FastAPI
 import httpx
 
-from app.adapters.coingecko_adapter import CoinGeckoClient, CoinGeckoConfig
-
-
-@dataclass
-class Adapters:
-    coingecko: CoinGeckoClient
+from app.adapters.coingecko_adapter import CoinGeckoAdapter, CoinGeckoConfig
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    limits = httpx.Limits(max_keepalive_connections=20, max_connections=100)
-
-    cg_http = httpx.AsyncClient(
-        base_url=CoinGeckoClient.BASE, limits=limits, timeout=None
+    coingecko_client = httpx.AsyncClient(
+        base_url=CoinGeckoAdapter.BASE
     )
 
-    cg_cfg = CoinGeckoConfig(timeout=5.0)
+    coingecko_cfg = CoinGeckoConfig(timeout=5.0)
 
-    coingecko_adapter = CoinGeckoClient(http_client=cg_http, cfg=cg_cfg)
+    coingecko_adapter = CoinGeckoAdapter(http_client=coingecko_client, cfg=coingecko_cfg)
 
     app.state.coingecko = coingecko_adapter
 
     try:
         yield
     finally:
-        await cg_http.aclose()
+        await coingecko_client.aclose()
 
 
 def create_app() -> FastAPI:
