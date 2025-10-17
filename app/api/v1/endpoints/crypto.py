@@ -11,4 +11,4 @@ crypto_router = APIRouter(prefix="/crypto", tags=["crypto"])
 
 @crypto_router.get("/")
 async def list_cryptos(current_user: Annotated[User, Depends(get_current_user)], client: CoinGeckoAdapter = Depends(get_coingecko_client)):
-    return await get_top_cryptos(client, per_page=10)
+    return await get_top_cryptos(client)

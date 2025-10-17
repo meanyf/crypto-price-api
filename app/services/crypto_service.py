@@ -4,8 +4,8 @@ from typing import List
 from app.ports.coingecko_port import CoingeckoPort
 
 
-async def get_top_cryptos(client: CoingeckoPort, per_page: int = 10) -> List[dict]:
-    data = await client.fetch_markets(per_page=per_page)
+async def get_top_cryptos(client: CoingeckoPort) -> List[dict]:
+    data = await client.fetch_markets()
     return [
         {
             "symbol": coin["symbol"].upper(),

@@ -3,12 +3,10 @@ from dataclasses import dataclass
 from typing import Any, Dict
 import httpx
 
-from app.core.exceptions import ExternalServiceError, ExternalTimeoutError
+from app.core.exceptions import ExternalAPIError, ExternalServiceError, ExternalTimeoutError
 from app.ports.coingecko_port import (
     CoingeckoPort,
-    DEFAULT_VS_CURRENCY,
-    DEFAULT_PER_PAGE,
-    DEFAULT_PAGE,
+    DEFAULT_VS_CURRENCY
 )
 
 
@@ -27,27 +25,20 @@ class CoinGeckoAdapter(CoingeckoPort):
         self.client = http_client
         self.timeout = cfg.timeout
 
-    async def fetch_markets(
-        self,
-        vs_currency: str = DEFAULT_VS_CURRENCY,
-        per_page: int = DEFAULT_PER_PAGE,
-        page: int = DEFAULT_PAGE,
-    ) -> Any:
+    async def fetch_markets(self, vs_currency: str = DEFAULT_VS_CURRENCY) -> Any:
         path = "/coins/markets"
         params = {
             "vs_currency": vs_currency,
-            "order": "market_cap_desc",
-            "per_page": per_page,
-            "page": page,
-            "sparkline": "false",
         }
+
         try:
             resp = await self.client.get(path, params=params, timeout=self.timeout)
+
         except httpx.TimeoutException as e:
             raise ExternalTimeoutError("CoinGecko timeout") from e
         except httpx.RequestError as e:
             raise ExternalServiceError("Failed to request CoinGecko") from e
 
         if resp.status_code != 200:
-            raise ExternalServiceError(f"CoinGecko returned {resp.status_code}")
+            raise ExternalServiceError(f"CoinGecko returned {resp.status_code}", resp.status_code)
         return resp.json()
