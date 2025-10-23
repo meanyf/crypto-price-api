@@ -12,3 +12,11 @@ class CoingeckoPort(Protocol):
         self,
         vs_currency: str = DEFAULT_VS_CURRENCY,
     ) -> List[dict]: ...
+
+    async def fetch_crypto_list(self) -> dict: ...
+
+    async def fetch_crypto_price(
+        self,
+        crypto_name,
+        vs_currency: str = DEFAULT_VS_CURRENCY,
+    ) -> dict: ...

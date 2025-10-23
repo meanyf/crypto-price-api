@@ -21,14 +21,13 @@ class CoinGeckoAdapter(CoingeckoPort):
     def __init__(
         self, http_client: httpx.AsyncClient, cfg: CoinGeckoConfig = CoinGeckoConfig()
     ):
-        # http_client создаётся/закрывается вне адаптера (в factory)
         self.client = http_client
         self.timeout = cfg.timeout
 
     async def fetch_markets(self, vs_currency: str = DEFAULT_VS_CURRENCY) -> Any:
         path = "/coins/markets"
         params = {
-            "vs_currency": vs_currency,
+            "vs_currency": vs_currency
         }
 
         try:
@@ -41,4 +40,36 @@ class CoinGeckoAdapter(CoingeckoPort):
 
         if resp.status_code != 200:
             raise ExternalServiceError(f"CoinGecko returned {resp.status_code}", resp.status_code)
+        return resp.json()
+
+    async def fetch_crypto_list(self): 
+        path = "/coins/list"
+        try:
+            resp = await self.client.get(path, timeout=self.timeout)
+        except httpx.TimeoutException as e:
+            raise ExternalTimeoutError("CoinGecko timeout") from e
+        if resp.status_code != 200:
+            raise ExternalServiceError(
+                f"CoinGecko returned {resp.status_code}", resp.status_code
+            )
+        return resp.json()
+
+    async def fetch_crypto_price(
+        self, crypto_name, vs_currency: str = DEFAULT_VS_CURRENCY
+    ):
+        path = "/simple/price"
+        params = {
+            "ids": crypto_name,  # ✅ Указываем, какую крипту хотим
+            "vs_currencies": vs_currency,
+        }
+        try:
+            resp = await self.client.get(path, params=params, timeout=self.timeout)
+            print(resp)
+            print(resp.json())
+        except httpx.TimeoutException as e:
+            raise ExternalTimeoutError("CoinGecko timeout") from e
+        if resp.status_code != 200:
+            raise ExternalServiceError(
+                f"CoinGecko returned {resp.status_code}", resp.status_code
+            )
         return resp.json()
