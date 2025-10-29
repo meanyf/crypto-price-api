@@ -1,4 +1,5 @@
 # crud.py
+from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.db.models import User, Crypto
@@ -16,7 +17,11 @@ def create_user(db: Session, *, username: str, password: str) -> User:
     return user
 
 
-def create_crypto(db: Session, *, crypto_name: str) -> Crypto:
-    crypto = User(crypto_name=crypto_name)
+def create_crypto(db: Session, crypto_dict: dict) -> Crypto:
+    crypto = Crypto(**crypto_dict)
     db.add(crypto)
     return crypto
+
+
+def get_cryptos(db: Session) -> List[Crypto]:
+    return db.execute(select(Crypto)).scalars().all()

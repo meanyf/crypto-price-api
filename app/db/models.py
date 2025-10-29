@@ -17,13 +17,7 @@ class User(Base):
 class Crypto(Base):
     __tablename__ = "cryptos"
 
-    id = Column(Integer, primary_key=True, index=True)
-    symbol = Column(String(20), unique=True, nullable=False, index=True)
+    symbol = Column(String(20), primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     current_price = Column(Numeric(20, 8), nullable=False)
     last_updated = Column(DateTime(timezone=True), nullable=False)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )

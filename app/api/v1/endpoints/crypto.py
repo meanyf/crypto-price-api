@@ -3,10 +3,13 @@
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from app.services.crypto_service import set_crypto_mapping, get_crypto_price, add_crypto
+from app.services.crypto_service import set_crypto_mapping, get_crypto_price, add_crypto, show_cryptos
 from app.adapters.coingecko_adapter import CoinGeckoAdapter
 from typing import Annotated
 from app.schemas.user import User
+from app.api.deps import get_db
+from sqlalchemy.orm import Session
+
 from app.api.deps import get_current_user, get_coingecko_client
 crypto_router = APIRouter(prefix="/crypto", tags=["crypto"])
 
@@ -26,8 +29,11 @@ templates = Jinja2Templates(directory="templates")
 
 
 @crypto_router.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    return templates.TemplateResponse("users/crypto.html", {"request": request})
+async def index(db: Annotated[Session, Depends(get_db)], request: Request):
+    cryptos = await show_cryptos(db)
+    return templates.TemplateResponse(
+        "users/crypto.html", {"request": request, "cryptos": cryptos}
+    )
 
 
 @crypto_router.get("/{symbol}")  # GET /crypto/{symbol}
@@ -41,8 +47,9 @@ async def crypto_symbol(
 
 @crypto_router.post("/")
 async def add_symbol(
-    symbol: Annotated[str, Form()],  
+    db: Annotated[Session, Depends(get_db)],
+    symbol: Annotated[str, Form()],
     current_user: Annotated[User, Depends(get_current_user)],
     client: CoinGeckoAdapter = Depends(get_coingecko_client),
 ):
-    return await add_crypto(client, symbol)
+    return await add_crypto(db, client, symbol)

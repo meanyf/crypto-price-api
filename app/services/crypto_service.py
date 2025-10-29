@@ -5,6 +5,9 @@ from app.ports.coingecko_port import CoingeckoPort
 from sqlalchemy.orm import Session
 from app.db.models import User
 from app.db.base import cache
+from datetime import datetime, timezone
+from app.db.crud import create_crypto, get_cryptos
+from sqlalchemy.exc import IntegrityError
 
 # async def get_top_cryptos(client: CoingeckoPort) -> List[dict]:
 #     data = await client.fetch_markets()
@@ -37,7 +40,11 @@ async def get_crypto_price(client: CoingeckoPort, crypto_symbol) -> List[dict]:
     return data
 
 
-async def add_crypto(
+async def show_cryptos(db: Session,
+) -> List[dict]:
+    return get_cryptos(db)
+
+async def add_crypto(db: Session,
     client: CoingeckoPort, crypto_symbol: str
 ) -> List[dict]:
     if not cache:
@@ -47,6 +54,16 @@ async def add_crypto(
     data = await client.fetch_crypto_price(id)
     d["symbol"] = crypto_symbol
     d["name"] = cache[crypto_symbol]['name']
-    d['price'] = data[id]['usd']
-    # d["last_updated"] = cache[crypto_symbol]["id"]["last_updated"]
-    return d
+    d["current_price"] = data[id]["usd"]
+    unix_timestamp = data[id]["last_updated_at"]
+    date = datetime.fromtimestamp(unix_timestamp, tz=timezone.utc)
+    d["last_updated"] = date.isoformat().replace('+00:00', 'Z')
+
+    crypto = create_crypto(db, d)  
+    try:
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        raise IntegrityError
+    db.refresh(crypto)
+    return crypto 

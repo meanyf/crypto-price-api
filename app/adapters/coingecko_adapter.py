@@ -61,6 +61,7 @@ class CoinGeckoAdapter(CoingeckoPort):
         params = {
             "ids": crypto_name,  # ✅ Указываем, какую крипту хотим
             "vs_currencies": vs_currency,
+            "include_last_updated_at": True
         }
         try:
             resp = await self.client.get(path, params=params, timeout=self.timeout)
