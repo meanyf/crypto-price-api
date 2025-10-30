@@ -33,3 +33,8 @@ class ExternalServiceError(ExternalAPIError):
 class ExternalTimeoutError(ExternalAPIError):
     status_code = 504
     default_message = "External timeout error"
+
+
+class CryptNotFound(ExternalAPIError):
+    status_code = 404
+    default_message = "Crypto is not found"

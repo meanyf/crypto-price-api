@@ -25,3 +25,9 @@ def create_crypto(db: Session, crypto_dict: dict) -> Crypto:
 
 def get_cryptos(db: Session) -> List[Crypto]:
     return db.execute(select(Crypto)).scalars().all()
+
+
+def get_crypto(db: Session, crypto_symbol: str) -> List[Crypto]:
+    return db.execute(
+        select(Crypto).where(Crypto.symbol == crypto_symbol)
+    ).scalar_one_or_none()

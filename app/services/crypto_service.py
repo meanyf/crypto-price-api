@@ -6,8 +6,9 @@ from sqlalchemy.orm import Session
 from app.db.models import User
 from app.db.base import cache
 from datetime import datetime, timezone
-from app.db.crud import create_crypto, get_cryptos
+from app.db.crud import create_crypto, get_cryptos, get_crypto
 from sqlalchemy.exc import IntegrityError
+from app.core.exceptions import CryptNotFound
 
 # async def get_top_cryptos(client: CoingeckoPort) -> List[dict]:
 #     data = await client.fetch_markets()
@@ -40,9 +41,11 @@ async def get_crypto_price(client: CoingeckoPort, crypto_symbol) -> List[dict]:
     return data
 
 
-async def show_cryptos(db: Session,
+async def list_cryptos(
+    db: Session,
 ) -> List[dict]:
     return get_cryptos(db)
+
 
 async def add_crypto(db: Session,
     client: CoingeckoPort, crypto_symbol: str
@@ -67,3 +70,19 @@ async def add_crypto(db: Session,
         raise IntegrityError
     db.refresh(crypto)
     return crypto 
+
+async def list_cryptos(
+    db: Session,
+) -> List[dict]:
+    return get_cryptos(db)
+
+
+async def get_crypto_by_symbol(
+    db: Session,
+    crypto_symbol: str
+) -> List[dict]:
+    crypto = get_crypto(db, crypto_symbol)
+    if crypto is not None:
+        return crypto 
+    else:
+        raise CryptNotFound
