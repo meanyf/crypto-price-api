@@ -17,17 +17,15 @@ def create_user(db: Session, *, username: str, password: str) -> User:
     return user
 
 
-def create_crypto(db: Session, crypto_dict: dict) -> Crypto:
-    crypto = Crypto(**crypto_dict)
-    db.add(crypto)
-    return crypto
+def create_crypto(crypto_dict: dict) -> Crypto:
+    return Crypto(**crypto_dict)
 
 
 def get_cryptos(db: Session) -> List[Crypto]:
     return db.execute(select(Crypto)).scalars().all()
 
 
-def get_crypto(db: Session, crypto_symbol: str) -> List[Crypto]:
+def get_crypto(db: Session, crypto_symbol: str) -> Crypto:
     return db.execute(
         select(Crypto).where(Crypto.symbol == crypto_symbol)
     ).scalar_one_or_none()

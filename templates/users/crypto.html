@@ -70,23 +70,26 @@
         <button type="submit">Добавить криптовалюту</button>
     </form>
 
-    <!-- Список криптовалют -->
-    <div class="crypto-list">
-        <h2>Список криптовалют:</h2>
-        
-        {% if cryptos %}
-            {% for crypto in cryptos %}
-            <div class="crypto-item">
-                <span class="crypto-symbol">{{ crypto.symbol }}</span> - 
-                <span class="crypto-name">{{ crypto.name }}</span><br>
-                <span class="crypto-price">Цена: ${{ "%.8f"|format(crypto.current_price) }}</span><br>
-                <span class="crypto-updated">Обновлено: {{ crypto.last_updated.strftime('%Y-%m-%d %H:%M:%S') }}</span>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p>Криптовалюты не найдены. Добавьте первую криптовалюту через форму выше.</p>
-        {% endif %}
-    </div>
+<!-- Список криптовалют -->
+<div class="crypto-list">
+    <h2>Список криптовалют:</h2>
+    
+    {% if cryptos %}
+        {% for crypto in cryptos %}
+        <div class="crypto-item">
+            <span class="crypto-symbol">{{ crypto.symbol }}</span> - 
+            <span class="crypto-name">{{ crypto.name }}</span><br>
+            <span class="crypto-price">Цена: ${{ "%.8f"|format(crypto.current_price) }}</span><br>
+            <span class="crypto-updated">Обновлено: {{ crypto.last_updated.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+            <button onclick="fetch('/crypto/{{ crypto.symbol }}/refresh', {method: 'PUT'}).then(() => location.reload())">
+                Обновить
+            </button>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>Криптовалюты не найдены. Добавьте первую криптовалюту через форму выше.</p>
+    {% endif %}
+</div>
 
 </body>
 </html>

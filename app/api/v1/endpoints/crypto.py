@@ -3,7 +3,14 @@
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from app.services.crypto_service import set_crypto_mapping, get_crypto_price, add_crypto, list_cryptos, get_crypto_by_symbol
+from app.services.crypto_service import (
+    set_crypto_mapping,
+    get_crypto_price,
+    add_crypto,
+    list_cryptos,
+    get_crypto_by_symbol,
+    update_crypto_by_symbol,
+)
 from app.adapters.coingecko_adapter import CoinGeckoAdapter
 from typing import Annotated
 from app.schemas.user import User
@@ -43,6 +50,16 @@ async def crypto_symbol(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     return await get_crypto_by_symbol(db, symbol)
+  
+
+@crypto_router.put("/{symbol}/refresh")
+async def crypto_symbol_price(
+    db: Annotated[Session, Depends(get_db)],
+    symbol: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    client: CoinGeckoAdapter = Depends(get_coingecko_client),
+):
+    return await update_crypto_by_symbol(db, client, symbol)
 
 
 @crypto_router.post("/")
