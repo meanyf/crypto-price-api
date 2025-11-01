@@ -65,7 +65,7 @@ async def add_crypto(db: Session,
         "symbol": crypto_symbol,
         "name": cache[crypto_symbol]["name"],
         "current_price": data[id]["usd"],
-        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "last_updated": datetime.now(timezone.utc),
     }
 
     crypto = create_crypto(d)   
@@ -75,6 +75,10 @@ async def add_crypto(db: Session,
             timestamp=crypto.last_updated
         )
     )
+    if len(crypto.history) > 100:
+        # гарантируем сортировку по timestamp, а затем оставляем последние 100
+        crypto.history[:] = sorted(crypto.history, key=lambda h: h.timestamp)[-100:]
+
     db.add(crypto)            
 
     try:
@@ -115,72 +119,12 @@ async def delete_crypto_by_symbol(db: Session, crypto_symbol: str) -> List[dict]
         raise e
 
 
-
 async def get_crypto_history_by_symbol(db: Session, crypto_symbol: str) -> List[dict]:
     crypto = get_crypto_history(db, crypto_symbol)
     if crypto is not None:
         return crypto
     else:
         raise CryptNotFound
-
-
-async def update_crypto_by_symbol(db: Session,
-    client: CoingeckoPort,
-    crypto_symbol: str):
-
-    crypto = get_crypto(db, crypto_symbol)
-    if not cache:
-        await set_crypto_mapping(client)
-
-    if crypto is not None: 
-        id = cache[crypto_symbol]["id"]
-        data = await client.fetch_crypto_price(id)
-        crypto.current_price = data[id]['usd']
-        crypto.last_updated = datetime.now(timezone.utc).isoformat()
-        crypto.history.append(
-            PriceHistory(
-                price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
-            )
-        )
-
-        try:
-            db.commit()   
-        except Exception:
-            db.rollback()
-            raise
-
-        db.refresh(crypto)     
-        return crypto
-    else:
-        raise CryptNotFound
-
-
-async def update_cryptos(
-    db: Session, client: CoingeckoPort
-):
-
-    cryptos = get_cryptos(db)
-    if not cache:
-        await set_crypto_mapping(client)
-
-    ids = [cache[crypto.symbol]["id"] for crypto in cryptos]
-    data = await client.fetch_crypto_price(','.join(ids))
-    for crypto in cryptos:
-        id = cache[crypto.symbol]["id"]
-        crypto.current_price = data[id]["usd"]
-        crypto.last_updated = datetime.now(timezone.utc).isoformat()
-        crypto.history.append(
-            PriceHistory(
-                price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
-            )
-        )
-
-    try:
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-
 
 async def update_crypto_by_symbol(
     db: Session, client: CoingeckoPort, crypto_symbol: str
@@ -194,12 +138,15 @@ async def update_crypto_by_symbol(
         id = cache[crypto_symbol]["id"]
         data = await client.fetch_crypto_price(id)
         crypto.current_price = data[id]["usd"]
-        crypto.last_updated = datetime.now(timezone.utc).isoformat()
+        crypto.last_updated = datetime.now(timezone.utc)
         crypto.history.append(
             PriceHistory(
                 price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
             )
         )
+        if len(crypto.history) > 100:
+            # гарантируем сортировку по timestamp, а затем оставляем последние 100
+            crypto.history[:] = sorted(crypto.history, key=lambda h: h.timestamp)[-100:]
 
         try:
             db.commit()
@@ -224,12 +171,25 @@ async def update_cryptos(db: Session, client: CoingeckoPort):
     for crypto in cryptos:
         id = cache[crypto.symbol]["id"]
         crypto.current_price = data[id]["usd"]
-        crypto.last_updated = datetime.now(timezone.utc).isoformat()
+        crypto.last_updated = datetime.now(timezone.utc)
         crypto.history.append(
             PriceHistory(
                 price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
             )
         )
+        if len(crypto.history) > 100:
+            # гарантируем сортировку по timestamp, а затем оставляем последние 100
+            crypto.history[:] = sorted(crypto.history, key=lambda h: h.timestamp)[-100:]
+
+    # if len(crypto.history) > 100:
+    #     crypto.history[:] = sorted(
+    #         crypto.history,
+    #         key=lambda h: (
+    #             h.timestamp
+    #             if isinstance(h.timestamp, datetime)
+    #             else datetime.fromisoformat(str(h.timestamp))
+    #         ),
+    #     )[-100:]
 
     try:
         db.commit()
