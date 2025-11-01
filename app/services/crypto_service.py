@@ -102,6 +102,20 @@ async def get_crypto_by_symbol(
         raise CryptNotFound
 
 
+async def delete_crypto_by_symbol(db: Session, crypto_symbol: str) -> List[dict]:
+    crypto = get_crypto(db, crypto_symbol)
+    if not crypto:
+        raise CryptNotFound
+    
+    try:
+        db.delete(crypto)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise e
+
+
+
 async def get_crypto_history_by_symbol(db: Session, crypto_symbol: str) -> List[dict]:
     crypto = get_crypto_history(db, crypto_symbol)
     if crypto is not None:
@@ -138,3 +152,30 @@ async def update_crypto_by_symbol(db: Session,
         return crypto
     else:
         raise CryptNotFound
+
+
+async def get_stats(db: Session, crypto_symbol: str):
+
+    crypto = get_crypto(db, crypto_symbol)
+    prices =  [h.price for h in crypto.history]
+    min_price = min(prices)
+    max_price = max(prices)
+    avg_price = sum(prices) / len(prices)
+    records_count = len(prices)
+    current_price = crypto.current_price
+    first_price = prices[0]
+    price_change = current_price - first_price
+    price_change_percent = (price_change / first_price * 100) if first_price else 0.0
+
+    return {
+        "symbol": crypto.symbol,
+        "current_price": crypto.current_price,
+        "stats": {
+            "min_price": min_price,
+            "max_price": max_price,
+            "avg_price": avg_price,
+            "price_change": round(price_change, 2),
+            "price_change_percent": round(price_change_percent, 4),
+            "records_count": records_count,
+        },
+    }

@@ -84,6 +84,9 @@
             <button onclick="fetch('/crypto/{{ crypto.symbol }}/refresh', {method: 'PUT'}).then(() => location.reload())">
                 Обновить
             </button>
+            <button onclick="fetch('/crypto/{{ crypto.symbol }}', {method: 'DELETE'}).then(() => location.reload())">
+                Удалить
+            </button>
         </div>
         {% endfor %}
     {% else %}

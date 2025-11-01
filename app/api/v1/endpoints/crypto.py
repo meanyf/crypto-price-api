@@ -11,6 +11,8 @@ from app.services.crypto_service import (
     get_crypto_by_symbol,
     update_crypto_by_symbol,
     list_history,
+    get_stats,
+    delete_crypto_by_symbol
 )
 from app.adapters.coingecko_adapter import CoinGeckoAdapter
 from typing import Annotated
@@ -57,6 +59,18 @@ async def history(
     )
 
 
+@crypto_router.get("/{symbol}/stats")
+async def stats(
+    db: Annotated[Session, Depends(get_db)],
+    request: Request,
+    symbol: str,
+):
+    stats = await get_stats(db, symbol)
+    return templates.TemplateResponse(
+        "users/crypto_stats.html", {"request": request, "stats": stats}
+    )
+
+
 @crypto_router.get("/{symbol}")
 async def crypto_symbol(
     db: Annotated[Session, Depends(get_db)],
@@ -64,6 +78,15 @@ async def crypto_symbol(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     return await get_crypto_by_symbol(db, symbol)
+
+
+@crypto_router.delete("/{symbol}") 
+async def delete_crypto_symbol(
+    db: Annotated[Session, Depends(get_db)],
+    symbol: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    await delete_crypto_by_symbol(db, symbol)
 
 
 @crypto_router.put("/{symbol}/refresh")

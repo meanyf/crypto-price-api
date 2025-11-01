@@ -1,0 +1,51 @@
+<!-- crypto_stats.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Stats</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .stat { margin: 10px 0; }
+        .value { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>{{ stats.symbol }} Statistics</h1>
+    
+    <div class="stat">
+        <strong>Current Price:</strong> 
+        <span class="value">${{ stats.current_price }}</span>
+    </div>
+    
+    <div class="stat">
+        <strong>Min Price:</strong> 
+        <span class="value">${{ stats.stats.min_price }}</span>
+    </div>
+    
+    <div class="stat">
+        <strong>Max Price:</strong> 
+        <span class="value">${{ stats.stats.max_price }}</span>
+    </div>
+    
+    <div class="stat">
+        <strong>Average Price:</strong> 
+        <span class="value">${{ stats.stats.avg_price }}</span>
+    </div>
+    
+    <div class="stat">
+        <strong>Price Change:</strong> 
+        <span class="value">${{ stats.stats.price_change }}</span>
+    </div>
+    
+    <div class="stat">
+        <strong>Price Change %:</strong> 
+        <span class="value">{{ stats.stats.price_change_percent }}%</span>
+    </div>
+    
+    <div class="stat">
+        <strong>Records Count:</strong> 
+        <span class="value">{{ stats.stats.records_count }}</span>
+    </div>
+</body>
+</html>
