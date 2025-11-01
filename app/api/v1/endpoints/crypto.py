@@ -23,18 +23,6 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_coingecko_client
 crypto_router = APIRouter(prefix="/crypto", tags=["crypto"])
 
-# @crypto_router.get("/")
-# async def list_cryptos(current_user: Annotated[User, Depends(get_current_user)], client: CoinGeckoAdapter = Depends(get_coingecko_client)):
-#     return await get_top_cryptos(client)
-
-
-# @crypto_router.get("/list")
-# async def list_cryptos(
-#     current_user: Annotated[User, Depends(get_current_user)],
-#     client: CoinGeckoAdapter = Depends(get_coingecko_client),
-# ):
-#     return await set_crypto_mapping(client)
-
 templates = Jinja2Templates(directory="templates")
 
 

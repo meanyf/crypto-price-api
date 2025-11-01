@@ -127,6 +127,7 @@ async def get_crypto_history_by_symbol(db: Session, crypto_symbol: str) -> List[
 async def update_crypto_by_symbol(db: Session,
     client: CoingeckoPort,
     crypto_symbol: str):
+
     crypto = get_crypto(db, crypto_symbol)
     if not cache:
         await set_crypto_mapping(client)
@@ -153,6 +154,91 @@ async def update_crypto_by_symbol(db: Session,
     else:
         raise CryptNotFound
 
+
+async def update_cryptos(
+    db: Session, client: CoingeckoPort
+):
+
+    cryptos = get_cryptos(db)
+    if not cache:
+        await set_crypto_mapping(client)
+
+    ids = [cache[crypto.symbol]["id"] for crypto in cryptos]
+    data = await client.fetch_crypto_price(','.join(ids))
+    for crypto in cryptos:
+        id = cache[crypto.symbol]["id"]
+        crypto.current_price = data[id]["usd"]
+        crypto.last_updated = datetime.now(timezone.utc).isoformat()
+        crypto.history.append(
+            PriceHistory(
+                price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
+            )
+        )
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+
+async def update_crypto_by_symbol(
+    db: Session, client: CoingeckoPort, crypto_symbol: str
+):
+
+    crypto = get_crypto(db, crypto_symbol)
+    if not cache:
+        await set_crypto_mapping(client)
+
+    if crypto is not None:
+        id = cache[crypto_symbol]["id"]
+        data = await client.fetch_crypto_price(id)
+        crypto.current_price = data[id]["usd"]
+        crypto.last_updated = datetime.now(timezone.utc).isoformat()
+        crypto.history.append(
+            PriceHistory(
+                price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
+            )
+        )
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
+        db.refresh(crypto)
+        return crypto
+    else:
+        raise CryptNotFound
+
+
+async def update_cryptos(db: Session, client: CoingeckoPort):
+
+    cryptos = get_cryptos(db)
+    if not cache:
+        await set_crypto_mapping(client)
+
+    ids = [cache[crypto.symbol]["id"] for crypto in cryptos]
+    data = await client.fetch_crypto_price(",".join(ids))
+    for crypto in cryptos:
+        id = cache[crypto.symbol]["id"]
+        crypto.current_price = data[id]["usd"]
+        crypto.last_updated = datetime.now(timezone.utc).isoformat()
+        crypto.history.append(
+            PriceHistory(
+                price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
+            )
+        )
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    for c in cryptos:
+        db.refresh(c)
 
 async def get_stats(db: Session, crypto_symbol: str):
 
