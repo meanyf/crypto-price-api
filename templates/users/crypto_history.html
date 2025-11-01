@@ -1,0 +1,53 @@
+<!-- crypto_history.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto History</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .history-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .price {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Crypto Price History</h1>
+    </div>
+    
+    <div id="history-list">
+        {% for item in history %}
+        <div class="history-item">
+            <div class="price">{{ "%.8f"|format(item.price) }}</div>
+            <div class="timestamp">{{ item.timestamp }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

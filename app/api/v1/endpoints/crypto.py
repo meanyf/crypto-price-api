@@ -10,6 +10,7 @@ from app.services.crypto_service import (
     list_cryptos,
     get_crypto_by_symbol,
     update_crypto_by_symbol,
+    list_history,
 )
 from app.adapters.coingecko_adapter import CoinGeckoAdapter
 from typing import Annotated
@@ -43,14 +44,27 @@ async def index(db: Annotated[Session, Depends(get_db)], request: Request):
     )
 
 
-@crypto_router.get("/{symbol}") 
+@crypto_router.get("/{symbol}/history")
+async def history(
+    db: Annotated[Session, Depends(get_db)],
+    request: Request,
+    symbol: str, 
+):
+    history = await list_history(db, symbol)
+    print(history)
+    return templates.TemplateResponse(
+        "users/crypto_history.html", {"request": request, "history": history}
+    )
+
+
+@crypto_router.get("/{symbol}")
 async def crypto_symbol(
     db: Annotated[Session, Depends(get_db)],
     symbol: str,
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     return await get_crypto_by_symbol(db, symbol)
-  
+
 
 @crypto_router.put("/{symbol}/refresh")
 async def crypto_symbol_price(

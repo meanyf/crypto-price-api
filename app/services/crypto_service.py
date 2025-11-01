@@ -1,12 +1,14 @@
 # crypto_service.py
 
+from decimal import Decimal
 from typing import List
 from app.ports.coingecko_port import CoingeckoPort
 from sqlalchemy.orm import Session
-from app.db.models import Crypto, User
+from app.db.models import Crypto, PriceHistory, User
 from app.db.base import cache
 from datetime import datetime, timezone
-from app.db.crud import create_crypto, get_cryptos, get_crypto
+from app.db.crud import create_crypto, get_cryptos, get_crypto, get_crypto_history
+
 from sqlalchemy.exc import IntegrityError
 from app.core.exceptions import CryptNotFound
 
@@ -47,6 +49,10 @@ async def list_cryptos(
     return get_cryptos(db)
 
 
+async def list_history(db: Session, symbol: str) -> List[PriceHistory]:
+    return get_crypto_history(db, symbol)
+
+
 async def add_crypto(db: Session,
                      client: CoingeckoPort,
                      crypto_symbol: str) -> Crypto:
@@ -59,12 +65,16 @@ async def add_crypto(db: Session,
         "symbol": crypto_symbol,
         "name": cache[crypto_symbol]["name"],
         "current_price": data[id]["usd"],
-        "last_updated": datetime.fromtimestamp(
-            data[id]["last_updated_at"], tz=timezone.utc
-        ).isoformat().replace('+00:00', 'Z')
+        "last_updated": datetime.now(timezone.utc).isoformat(),
     }
 
     crypto = create_crypto(d)   
+    crypto.history.append(
+        PriceHistory(
+            price=Decimal(str(crypto.current_price)),
+            timestamp=crypto.last_updated
+        )
+    )
     db.add(crypto)            
 
     try:
@@ -91,6 +101,15 @@ async def get_crypto_by_symbol(
     else:
         raise CryptNotFound
 
+
+async def get_crypto_history_by_symbol(db: Session, crypto_symbol: str) -> List[dict]:
+    crypto = get_crypto_history(db, crypto_symbol)
+    if crypto is not None:
+        return crypto
+    else:
+        raise CryptNotFound
+
+
 async def update_crypto_by_symbol(db: Session,
     client: CoingeckoPort,
     crypto_symbol: str):
@@ -102,11 +121,13 @@ async def update_crypto_by_symbol(db: Session,
         id = cache[crypto_symbol]["id"]
         data = await client.fetch_crypto_price(id)
         crypto.current_price = data[id]['usd']
-        crypto.last_updated = (
-            datetime.fromtimestamp(data[id]["last_updated_at"], tz=timezone.utc)
-            .isoformat()
-            .replace("+00:00", "Z")
+        crypto.last_updated = datetime.now(timezone.utc).isoformat()
+        crypto.history.append(
+            PriceHistory(
+                price=Decimal(str(crypto.current_price)), timestamp=crypto.last_updated
+            )
         )
+
         try:
             db.commit()   
         except Exception:

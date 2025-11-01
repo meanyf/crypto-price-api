@@ -21,3 +21,29 @@ class Crypto(Base):
     name = Column(String(255), nullable=False)
     current_price = Column(Numeric(20, 8), nullable=False)
     last_updated = Column(DateTime(timezone=True), nullable=False)
+
+    # связь к истории; cascade позволит автоматически сохранять/удалять дочерние записи
+    history = relationship(
+        "PriceHistory",
+        back_populates="crypto",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="PriceHistory.timestamp",  # упорядочение при загрузке (по возрастанию)
+    )
+
+
+class PriceHistory(Base):
+    __tablename__ = "price_history"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(
+        String(20),
+        ForeignKey("cryptos.symbol", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    price = Column(Numeric(20, 8), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    # обратная связь
+    crypto = relationship("Crypto", back_populates="history")

@@ -2,7 +2,7 @@
 from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.db.models import User, Crypto
+from app.db.models import User, Crypto, PriceHistory
 
 def get_user(db: Session, username: str) -> User | None:
     return db.execute(
@@ -25,7 +25,19 @@ def get_cryptos(db: Session) -> List[Crypto]:
     return db.execute(select(Crypto)).scalars().all()
 
 
+def get_crypto_history(db: Session, crypto_symbol: str) -> List[PriceHistory]:
+    return (
+        db.execute(select(PriceHistory).where(PriceHistory.symbol == crypto_symbol))
+        .scalars()
+        .all()
+    )
+
+
 def get_crypto(db: Session, crypto_symbol: str) -> Crypto:
     return db.execute(
         select(Crypto).where(Crypto.symbol == crypto_symbol)
     ).scalar_one_or_none()
+
+
+def create_history(history_dict: dict) -> PriceHistory:
+    return PriceHistory(**history_dict)
