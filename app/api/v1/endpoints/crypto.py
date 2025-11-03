@@ -19,6 +19,7 @@ from typing import Annotated
 from app.schemas.user_schema import UserOut
 from app.api.deps import get_db
 from sqlalchemy.orm import Session
+from app.schemas.symbol_schema import Symbol
 
 from app.api.deps import get_current_user, get_coingecko_client
 crypto_router = APIRouter(prefix="/crypto", tags=["crypto"])
@@ -26,12 +27,14 @@ crypto_router = APIRouter(prefix="/crypto", tags=["crypto"])
 templates = Jinja2Templates(directory="templates")
 
 
-@crypto_router.get("/", response_class=HTMLResponse)
+@crypto_router.get("/")
 async def index(db: Annotated[Session, Depends(get_db)], request: Request):
     cryptos = await list_cryptos(db)
-    return templates.TemplateResponse(
-        "users/crypto.html", {"request": request, "cryptos": cryptos}
-    )
+    print(cryptos)
+    return {'cryptos': cryptos}
+    # return templates.TemplateResponse(
+    #     "crypto/crypto.html", {"request": request, "cryptos": cryptos}
+    # )
 
 
 @crypto_router.get("/{symbol}/history")
@@ -43,7 +46,7 @@ async def history(
     history = await list_history(db, symbol)
     print(history)
     return templates.TemplateResponse(
-        "users/crypto_history.html", {"request": request, "history": history}
+        "crypto/crypto_history.html", {"request": request, "history": history}
     )
 
 
@@ -55,7 +58,7 @@ async def stats(
 ):
     stats = await get_stats(db, symbol)
     return templates.TemplateResponse(
-        "users/crypto_stats.html", {"request": request, "stats": stats}
+        "crypto/crypto_stats.html", {"request": request, "stats": stats}
     )
 
 
@@ -90,8 +93,8 @@ async def crypto_symbol_price(
 @crypto_router.post("/")
 async def add_symbol(
     db: Annotated[Session, Depends(get_db)],
-    symbol: Annotated[str, Form()],
+    symbol: Symbol,
     current_user: Annotated[UserOut, Depends(get_current_user)],
     client: CoinGeckoAdapter = Depends(get_coingecko_client),
 ):
-    return await add_crypto(db, client, symbol)
+    return await add_crypto(db, client, symbol.symbol.lower())

@@ -58,7 +58,7 @@ async def register(
     response: Response,
     creds: Creds,  
 ):
-    user = register_user(db, creds.username, creds.password)
+    user = register_user(db, creds.username, creds.password.get_secret_value())
     token, expires = make_token_for_user(user)
     response.set_cookie(**get_cookie_from_token(token, expires))
     return {"token": token}

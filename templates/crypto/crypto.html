@@ -65,10 +65,27 @@
     <h1>Криптовалюты</h1>
     
     <!-- Форма для добавления новой криптовалюты -->
-    <form action="/crypto" method="POST">
+    <form id="cryptoForm">
         <input type="text" name="symbol" placeholder="Введите символ (например: BTC)" required>
         <button type="submit">Добавить криптовалюту</button>
     </form>
+    <script>
+        document.getElementById('cryptoForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        const res = await fetch('/crypto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        });
+        
+        const result = await res.json();
+        console.log('Response:', result);
+      };
+    </script>
 
 <!-- Список криптовалют -->
 <div class="crypto-list">

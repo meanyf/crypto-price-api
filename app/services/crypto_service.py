@@ -42,11 +42,18 @@ async def get_crypto_price(client: CoingeckoPort, crypto_symbol) -> List[dict]:
     data = await client.fetch_crypto_price(cache[crypto_symbol]['id'])
     return data
 
+from pydantic import BaseModel
+class CryptoResponse(BaseModel):
+    name: str
+    symbol: str
+    current_price: float
+    last_updated: datetime
+    model_config = {"from_attributes": True}
 
-async def list_cryptos(
-    db: Session,
-) -> List[dict]:
-    return get_cryptos(db)
+
+async def list_cryptos(db: Session) -> List[dict]:
+    db_cryptos = get_cryptos(db)
+    return [CryptoResponse.model_validate(crypto) for crypto in db_cryptos]
 
 
 async def list_history(db: Session, symbol: str) -> List[PriceHistory]:
@@ -87,12 +94,7 @@ async def add_crypto(db: Session,
         db.rollback()
         raise
     db.refresh(crypto)
-    return crypto
-
-async def list_cryptos(
-    db: Session,
-) -> List[dict]:
-    return get_cryptos(db)
+    return {'crypto': d}
 
 
 async def get_crypto_by_symbol(
