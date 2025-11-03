@@ -1,7 +1,3 @@
-<!-- login.html -->
-
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,17 +11,56 @@
 </head>
 <body>
     <h2>Login</h2>
-    <form method="post" action="/auth/login">
+    <form id="loginForm">
         <input type="text" name="username" placeholder="Username" value="johndoe" />
         <input type="password" name="password" placeholder="Password" value="secret" />
         <button type="submit">Login</button>
-    </form>
+      </form>
+      
+      <script>
+        document.getElementById('loginForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        });
+        
+        const result = await res.json();
+        console.log('Response:', result);
+      };
+    </script>
+
     <h2>Register</h2>
-    <form method="post" action="/auth/register">
+    <form id="registerForm">
         <input type="text" name="username" placeholder="Username" value="johndoe" />
         <input type="password" name="password" placeholder="Password" value="secret" />
         <button type="submit">Register</button>
     </form>
+    <script>
+        document.getElementById('registerForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        });
+        
+        const result = await res.json();
+        console.log('Response:', result);
+      };
+    </script>
     <a href="/users/me">Go to /users/me/</a>
+
+    
 </body>
+</html>
 </html>

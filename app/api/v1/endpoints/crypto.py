@@ -16,7 +16,7 @@ from app.services.crypto_service import (
 )
 from app.adapters.coingecko_adapter import CoinGeckoAdapter
 from typing import Annotated
-from app.schemas.user import User
+from app.schemas.user_schema import UserOut
 from app.api.deps import get_db
 from sqlalchemy.orm import Session
 
@@ -63,7 +63,7 @@ async def stats(
 async def crypto_symbol(
     db: Annotated[Session, Depends(get_db)],
     symbol: str,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
     return await get_crypto_by_symbol(db, symbol)
 
@@ -72,7 +72,7 @@ async def crypto_symbol(
 async def delete_crypto_symbol(
     db: Annotated[Session, Depends(get_db)],
     symbol: str,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
     await delete_crypto_by_symbol(db, symbol)
 
@@ -81,7 +81,7 @@ async def delete_crypto_symbol(
 async def crypto_symbol_price(
     db: Annotated[Session, Depends(get_db)],
     symbol: str,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
     client: CoinGeckoAdapter = Depends(get_coingecko_client),
 ):
     return await update_crypto_by_symbol(db, client, symbol)
@@ -91,7 +91,7 @@ async def crypto_symbol_price(
 async def add_symbol(
     db: Annotated[Session, Depends(get_db)],
     symbol: Annotated[str, Form()],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
     client: CoinGeckoAdapter = Depends(get_coingecko_client),
 ):
     return await add_crypto(db, client, symbol)

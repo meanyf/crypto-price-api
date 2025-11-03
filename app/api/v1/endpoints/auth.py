@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from app.core.security import authenticate_user, create_access_token
 from app.core.config import settings
-from app.schemas.token import Token, TokenData
+from app.schemas.creds_schema import Creds
 from app.api.deps import get_db
 from sqlalchemy.orm import Session
 from app.services.auth_service import login_user, register_user, make_token_for_user, get_cookie_from_token
@@ -26,15 +26,29 @@ def index(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
 
 
+from typing import Annotated
+from fastapi import APIRouter, Depends, Response, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+
 @auth_router.post("/login", status_code=status.HTTP_200_OK)
 async def login(
     db: Annotated[Session, Depends(get_db)],
     response: Response,
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    creds: Creds, 
 ):
-    user = login_user(db, form_data.username, form_data.password)
+    user = login_user(db, creds.username, creds.password.get_secret_value())
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+        )
+
     token, expires = make_token_for_user(user)
+
     response.set_cookie(**get_cookie_from_token(token, expires))
+    print(creds)
     return {"token": token}
 
 
@@ -42,9 +56,9 @@ async def login(
 async def register(
     db: Annotated[Session, Depends(get_db)],
     response: Response,
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    creds: Creds,  
 ):
-    user = register_user(db, form_data.username, form_data.password)
+    user = register_user(db, creds.username, creds.password)
     token, expires = make_token_for_user(user)
     response.set_cookie(**get_cookie_from_token(token, expires))
     return {"token": token}

@@ -65,8 +65,6 @@ class CoinGeckoAdapter(CoingeckoPort):
         }
         try:
             resp = await self.client.get(path, params=params, timeout=self.timeout)
-            print(resp)
-            print(resp.json())
         except httpx.TimeoutException as e:
             raise ExternalTimeoutError("CoinGecko timeout") from e
         if resp.status_code != 200:

@@ -6,11 +6,11 @@ from jose import JWTError, jwt
 from app.core.security import oauth2_scheme
 from app.db.session import get_db
 from app.db import crud
-from app.schemas.user import User
-from app.schemas.token import Token, TokenData
+from app.schemas.token_schema import Token, TokenData
 from app.core.config import settings
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import sessionmaker, Session
+from app.schemas.user_schema import UserOut
 
 
 async def get_current_user(
@@ -42,7 +42,7 @@ async def get_current_user(
     user = crud.get_user(db, username=token_data.username)   # <-- передаём db
     if user is None:
         raise credentials_exception
-    return user
+    return UserOut.model_validate(user)
 
 from fastapi import Request
 from app.ports.coingecko_port import CoingeckoPort
