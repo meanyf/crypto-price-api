@@ -8,21 +8,9 @@ from app.db.models import Crypto, PriceHistory, User
 from app.db.base import cache
 from datetime import datetime, timezone
 from app.db.crud import create_crypto, get_cryptos, get_crypto, get_crypto_history
-
+from app.schemas.crypto_schema import CryptoResponse, PriceHistoryResponse
 from sqlalchemy.exc import IntegrityError
-from app.core.exceptions import CryptNotFound
-
-# async def get_top_cryptos(client: CoingeckoPort) -> List[dict]:
-#     data = await client.fetch_markets()
-#     return [
-#         {
-#             "symbol": coin["symbol"].upper(),
-#             "name": coin["name"],
-#             "current_price": coin["current_price"],
-#             "last_updated": coin["last_updated"],
-#         }
-#         for coin in data
-#     ]
+from app.core.exceptions import CryptoNotFound, CrptoAlreadyExists
 
 
 async def set_crypto_mapping(client: CoingeckoPort) -> List[dict]:
@@ -42,14 +30,6 @@ async def get_crypto_price(client: CoingeckoPort, crypto_symbol) -> List[dict]:
     data = await client.fetch_crypto_price(cache[crypto_symbol]['id'])
     return data
 
-from pydantic import BaseModel
-class CryptoResponse(BaseModel):
-    name: str
-    symbol: str
-    current_price: float
-    last_updated: datetime
-    model_config = {"from_attributes": True}
-
 
 async def list_cryptos(db: Session) -> List[dict]:
     db_cryptos = get_cryptos(db)
@@ -57,7 +37,8 @@ async def list_cryptos(db: Session) -> List[dict]:
 
 
 async def list_history(db: Session, symbol: str) -> List[PriceHistory]:
-    return get_crypto_history(db, symbol)
+    db_prices = get_crypto_history(db, symbol)
+    return [PriceHistoryResponse.model_validate(crypto) for crypto in db_prices]
 
 
 async def add_crypto(db: Session,
@@ -74,7 +55,8 @@ async def add_crypto(db: Session,
         "current_price": data[id]["usd"],
         "last_updated": datetime.now(timezone.utc),
     }
-
+    if get_crypto(db, crypto_symbol) is not None:
+        raise CrptoAlreadyExists
     crypto = create_crypto(d)   
     crypto.history.append(
         PriceHistory(
@@ -103,15 +85,15 @@ async def get_crypto_by_symbol(
 ) -> List[dict]:
     crypto = get_crypto(db, crypto_symbol)
     if crypto is not None:
-        return crypto 
+        return CryptoResponse.model_validate(crypto) 
     else:
-        raise CryptNotFound
+        raise CryptoNotFound
 
 
 async def delete_crypto_by_symbol(db: Session, crypto_symbol: str) -> List[dict]:
     crypto = get_crypto(db, crypto_symbol)
     if not crypto:
-        raise CryptNotFound
+        raise CryptoNotFound
     
     try:
         db.delete(crypto)
@@ -126,7 +108,7 @@ async def get_crypto_history_by_symbol(db: Session, crypto_symbol: str) -> List[
     if crypto is not None:
         return crypto
     else:
-        raise CryptNotFound
+        raise CryptoNotFound
 
 async def update_crypto_by_symbol(
     db: Session, client: CoingeckoPort, crypto_symbol: str
@@ -157,9 +139,9 @@ async def update_crypto_by_symbol(
             raise
 
         db.refresh(crypto)
-        return crypto
+        return {'crypto': CryptoResponse.model_validate(crypto)}
     else:
-        raise CryptNotFound
+        raise CryptoNotFound
 
 
 async def update_cryptos(db: Session, client: CoingeckoPort):
@@ -182,16 +164,6 @@ async def update_cryptos(db: Session, client: CoingeckoPort):
         if len(crypto.history) > 100:
             # гарантируем сортировку по timestamp, а затем оставляем последние 100
             crypto.history[:] = sorted(crypto.history, key=lambda h: h.timestamp)[-100:]
-
-    # if len(crypto.history) > 100:
-    #     crypto.history[:] = sorted(
-    #         crypto.history,
-    #         key=lambda h: (
-    #             h.timestamp
-    #             if isinstance(h.timestamp, datetime)
-    #             else datetime.fromisoformat(str(h.timestamp))
-    #         ),
-    #     )[-100:]
 
     try:
         db.commit()

@@ -28,7 +28,11 @@ templates = Jinja2Templates(directory="templates")
 
 
 @crypto_router.get("/")
-async def index(db: Annotated[Session, Depends(get_db)], request: Request):
+async def index(
+    db: Annotated[Session, Depends(get_db)],
+    request: Request,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+):
     cryptos = await list_cryptos(db)
     print(cryptos)
     return {'cryptos': cryptos}
@@ -41,13 +45,16 @@ async def index(db: Annotated[Session, Depends(get_db)], request: Request):
 async def history(
     db: Annotated[Session, Depends(get_db)],
     request: Request,
-    symbol: str, 
+    symbol: str,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
     history = await list_history(db, symbol)
-    print(history)
-    return templates.TemplateResponse(
-        "crypto/crypto_history.html", {"request": request, "history": history}
-    )
+    return {"symbol": symbol,
+            'history': history
+            }
+    # return templates.TemplateResponse(
+    #     "crypto/crypto_history.html", {"request": request, "history": history}
+    # )
 
 
 @crypto_router.get("/{symbol}/stats")
@@ -55,11 +62,13 @@ async def stats(
     db: Annotated[Session, Depends(get_db)],
     request: Request,
     symbol: str,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
-    stats = await get_stats(db, symbol)
-    return templates.TemplateResponse(
-        "crypto/crypto_stats.html", {"request": request, "stats": stats}
-    )
+    stats = await get_stats(db, symbol.lower())
+    return stats
+    # return templates.TemplateResponse(
+    #     "crypto/crypto_stats.html", {"request": request, "stats": stats}
+    # )
 
 
 @crypto_router.get("/{symbol}")
@@ -68,7 +77,7 @@ async def crypto_symbol(
     symbol: str,
     current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
-    return await get_crypto_by_symbol(db, symbol)
+    return await get_crypto_by_symbol(db, symbol.lower())
 
 
 @crypto_router.delete("/{symbol}") 
@@ -77,7 +86,8 @@ async def delete_crypto_symbol(
     symbol: str,
     current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
-    await delete_crypto_by_symbol(db, symbol)
+    await delete_crypto_by_symbol(db, symbol.lower())
+    return {}
 
 
 @crypto_router.put("/{symbol}/refresh")
@@ -87,7 +97,7 @@ async def crypto_symbol_price(
     current_user: Annotated[UserOut, Depends(get_current_user)],
     client: CoinGeckoAdapter = Depends(get_coingecko_client),
 ):
-    return await update_crypto_by_symbol(db, client, symbol)
+    return await update_crypto_by_symbol(db, client, symbol.lower())
 
 
 @crypto_router.post("/")

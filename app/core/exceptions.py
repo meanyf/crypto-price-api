@@ -35,6 +35,11 @@ class ExternalTimeoutError(ExternalAPIError):
     default_message = "External timeout error"
 
 
-class CryptNotFound(ExternalAPIError):
+class CryptoNotFound(DomainError):
     status_code = 404
     default_message = "Crypto is not found"
+
+
+class CrptoAlreadyExists(DomainError):
+    status_code = 409
+    default_message = "Crypto already exists"
