@@ -4,15 +4,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.services.crypto_service import (
-    set_crypto_mapping,
-    get_crypto_price,
-    add_crypto,
-    list_cryptos,
-    get_crypto_by_symbol,
-    update_crypto_by_symbol,
-    list_history,
-    get_stats,
-    delete_crypto_by_symbol
+    CryptoService,
 )
 from app.adapters.coingecko_adapter import CoinGeckoAdapter
 from typing import Annotated
@@ -21,7 +13,7 @@ from app.api.deps import get_db
 from sqlalchemy.orm import Session
 from app.schemas.symbol_schema import Symbol
 
-from app.api.deps import get_current_user, get_coingecko_client
+from app.api.deps import get_current_user, get_coingecko_client, get_crypto_service
 crypto_router = APIRouter(prefix="/crypto", tags=["crypto"])
 
 templates = Jinja2Templates(directory="templates")
@@ -29,11 +21,9 @@ templates = Jinja2Templates(directory="templates")
 
 @crypto_router.get("/")
 async def index(
-    db: Annotated[Session, Depends(get_db)],
-    request: Request,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    cryptos = await list_cryptos(db)
+    cryptos = await service.list_cryptos()
     print(cryptos)
     return {'cryptos': cryptos}
     # return templates.TemplateResponse(
@@ -43,12 +33,10 @@ async def index(
 
 @crypto_router.get("/{symbol}/history")
 async def history(
-    db: Annotated[Session, Depends(get_db)],
-    request: Request,
     symbol: str,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    history = await list_history(db, symbol)
+    history = await service.list_history(symbol)
     return {"symbol": symbol,
             'history': history
             }
@@ -59,12 +47,10 @@ async def history(
 
 @crypto_router.get("/{symbol}/stats")
 async def stats(
-    db: Annotated[Session, Depends(get_db)],
-    request: Request,
     symbol: str,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    stats = await get_stats(db, symbol.lower())
+    stats = await service.get_stats(symbol.lower())
     return stats
     # return templates.TemplateResponse(
     #     "crypto/crypto_stats.html", {"request": request, "stats": stats}
@@ -73,38 +59,32 @@ async def stats(
 
 @crypto_router.get("/{symbol}")
 async def crypto_symbol(
-    db: Annotated[Session, Depends(get_db)],
     symbol: str,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    return await get_crypto_by_symbol(db, symbol.lower())
+    return await service.get_crypto_by_symbol(symbol.lower())
 
 
 @crypto_router.delete("/{symbol}") 
 async def delete_crypto_symbol(
-    db: Annotated[Session, Depends(get_db)],
     symbol: str,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    await delete_crypto_by_symbol(db, symbol.lower())
+    await service.delete_crypto_by_symbol(symbol.lower())
     return {}
 
 
 @crypto_router.put("/{symbol}/refresh")
 async def crypto_symbol_price(
-    db: Annotated[Session, Depends(get_db)],
     symbol: str,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-    client: CoinGeckoAdapter = Depends(get_coingecko_client),
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    return await update_crypto_by_symbol(db, client, symbol.lower())
+    return await service.update_crypto_by_symbol(symbol.lower())
 
 
 @crypto_router.post("/")
 async def add_symbol(
-    db: Annotated[Session, Depends(get_db)],
     symbol: Symbol,
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-    client: CoinGeckoAdapter = Depends(get_coingecko_client),
+    service: CryptoService = Depends(get_crypto_service),
 ):
-    return await add_crypto(db, client, symbol.symbol.lower())
+    return await service.add_crypto(symbol.symbol.lower())

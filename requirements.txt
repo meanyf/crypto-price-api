@@ -12,3 +12,4 @@ psycopg[binary]>=3.1,<4.0 # Библиотека для работы с PostgreS
 jinja2
 python-multipart
 httpx
+redis

@@ -8,11 +8,6 @@ DEFAULT_VS_CURRENCY = "usd"
 
 
 class CoingeckoPort(Protocol):
-    async def fetch_markets(
-        self,
-        vs_currency: str = DEFAULT_VS_CURRENCY,
-    ) -> List[dict]: ...
-
     async def fetch_crypto_list(self) -> dict: ...
 
     async def fetch_crypto_price(

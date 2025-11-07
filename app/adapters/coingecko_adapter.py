@@ -24,24 +24,6 @@ class CoinGeckoAdapter(CoingeckoPort):
         self.client = http_client
         self.timeout = cfg.timeout
 
-    async def fetch_markets(self, vs_currency: str = DEFAULT_VS_CURRENCY) -> Any:
-        path = "/coins/markets"
-        params = {
-            "vs_currency": vs_currency
-        }
-
-        try:
-            resp = await self.client.get(path, params=params, timeout=self.timeout)
-
-        except httpx.TimeoutException as e:
-            raise ExternalTimeoutError("CoinGecko timeout") from e
-        except httpx.RequestError as e:
-            raise ExternalServiceError("Failed to request CoinGecko") from e
-
-        if resp.status_code != 200:
-            raise ExternalServiceError(f"CoinGecko returned {resp.status_code}", resp.status_code)
-        return resp.json()
-
     async def fetch_crypto_list(self): 
         path = "/coins/list"
         try:

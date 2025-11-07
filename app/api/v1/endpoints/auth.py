@@ -6,8 +6,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 from pydantic import BaseModel
 
-from app.core.security import authenticate_user, create_access_token
-from app.core.config import settings
 from app.schemas.creds_schema import Creds
 from app.api.deps import get_db
 from sqlalchemy.orm import Session

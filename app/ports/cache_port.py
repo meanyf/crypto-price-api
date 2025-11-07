@@ -1,0 +1,13 @@
+# app/ports/cache_port.py
+from typing import Any, Optional, Protocol
+
+
+class CachePort(Protocol):
+    """Асинхронный порт кеша для use-case / adapter слоя."""
+
+    async def get(self, key: str) -> Optional[Any]: ...
+    async def set(
+        self, key: str, value: Any, ttl_seconds: int | None = None
+    ) -> None: ...
+    async def delete(self, key: str) -> None: ...
+    async def exists(self, key: str) -> bool: ...

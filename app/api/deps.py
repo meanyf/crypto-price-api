@@ -46,7 +46,20 @@ async def get_current_user(
 
 from fastapi import Request
 from app.ports.coingecko_port import CoingeckoPort
+from app.ports.cache_port import CachePort
 
 
 def get_coingecko_client(request: Request) -> CoingeckoPort:
     return request.app.state.coingecko
+
+
+def get_cache_client(request: Request) -> CachePort:
+    return request.app.state.cache
+
+from app.services.crypto_service import CryptoService
+def get_crypto_service(
+    db: Session = Depends(get_db),
+    coingecko: CoingeckoPort = Depends(get_coingecko_client),
+    cache: CachePort = Depends(get_cache_client),
+) -> CryptoService:
+    return CryptoService(db=db, coingecko=coingecko, cache=cache)
