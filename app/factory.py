@@ -36,14 +36,14 @@ async def lifespan(app: FastAPI):
     from itertools import islice
 
     data = await app.state.coingecko.fetch_crypto_list()
-
+    print(data[:5])
     for item in data:
         key = item["symbol"].lower()
         value = {"id": item["id"], "name": item["name"]}
 
         # Сохраняем в Redis вместо app.state.cache
         await app.state.cache.set(key, value, ttl_seconds=86400)  # TTL 24 часа
-
+    print('cache', app.state.cache)
     # событие для управления остановкой poller'a
     app.state._stop_event = asyncio.Event()
     # стартуем цикл опроса (после того, как cache/redis и другие ресурсы готовы)

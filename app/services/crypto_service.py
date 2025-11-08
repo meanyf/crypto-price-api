@@ -23,7 +23,8 @@ class CryptoService:
 
 
     async def get_crypto_price(self, crypto_symbol) -> List[dict]:
-        data = await self.coingecko.fetch_crypto_price(self.cache.get(crypto_symbol.lower())['id'])
+        value = await self.cache.get(crypto_symbol.lower())
+        data = await self.coingecko.fetch_crypto_price(value['id'])
         return data
 
     async def list_cryptos(self) -> List[dict]:
@@ -35,14 +36,12 @@ class CryptoService:
         return [PriceHistoryResponse.model_validate(crypto) for crypto in db_prices]
 
     async def add_crypto(self, crypto_symbol: str) -> Crypto:
-        if not self.cache:
-            await self.set_crypto_mapping()
-
-        id = self.cache[crypto_symbol.lower()]["id"]
+        value = await self.cache.get(crypto_symbol.lower())
+        id = value["id"]
         data = await self.coingecko.fetch_crypto_price(id)
         d = {
             "symbol": crypto_symbol,
-            "name": self.cache[crypto_symbol.lower()]["name"],
+            "name": value["name"],
             "current_price": data[id]["usd"],
             "last_updated": datetime.now(timezone.utc),
         }
@@ -95,10 +94,9 @@ class CryptoService:
 
     async def update_crypto_by_symbol(self, crypto_symbol: str):
         crypto = get_crypto(self.db, crypto_symbol)
-        if not self.cache:
-            await self.set_crypto_mapping()
         if crypto is not None:
-            id = self.cache[crypto_symbol.lower()]["id"]
+            value = await self.cache.get(crypto_symbol.lower())
+            id = value["id"]
             data = await self.coingecko.fetch_crypto_price(id)
             crypto.current_price = data[id]["usd"]
             crypto.last_updated = datetime.now(timezone.utc)
@@ -121,12 +119,14 @@ class CryptoService:
 
     async def update_cryptos(self):
         cryptos = get_cryptos(self.db)
-        if not self.cache:
-            await self.set_crypto_mapping()
-        ids = [self.cache[crypto.symbol]["id"] for crypto in cryptos]
+        ids = []
+        for crypto in cryptos:
+            value = await self.cache.get(crypto.symbol)
+            ids.append(value["id"] if value is not None else None)        
         data = await self.coingecko.fetch_crypto_price(",".join(ids))
         for crypto in cryptos:
-            id = self.cache[crypto.symbol]["id"]
+            value = await self.cache.get(crypto.symbol)
+            id = value["id"]
             crypto.current_price = data[id]["usd"]
             crypto.last_updated = datetime.now(timezone.utc)
             crypto.history.append(
