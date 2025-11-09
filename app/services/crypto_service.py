@@ -146,6 +146,8 @@ class CryptoService:
 
     async def get_stats(self, crypto_symbol: str):
         crypto = get_crypto(self.db, crypto_symbol)
+        if crypto is None:
+            raise CryptoNotFound
         prices =  [h.price for h in crypto.history]
         min_price = min(prices)
         max_price = max(prices)
