@@ -18,7 +18,7 @@ async def get_current_user(
     request: Request,
     token: Annotated[str, Depends(oauth2_scheme)] = None,
     access_token: str = Cookie(None),
-):
+) -> UserOut:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -61,5 +61,6 @@ def get_crypto_service(
     db: Session = Depends(get_db),
     coingecko: CoingeckoPort = Depends(get_coingecko_client),
     cache: CachePort = Depends(get_cache_client),
+    current_user: UserOut = Depends(get_current_user),
 ) -> CryptoService:
     return CryptoService(db=db, coingecko=coingecko, cache=cache)
