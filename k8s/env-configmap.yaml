@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  ACCESS_EXPIRE_MINUTES: "30"
+  ALGORITHM: HS256
+  APP_NAME: MyJWTService
+  DB_HOST: db
+  DB_NAME: crypto-db
+  DB_PASS: postgres
+  DB_PORT: "5432"
+  DB_USER: postgres
+  REDIS_DB: "0"
+  REDIS_HOST: redis
+  REDIS_PASSWORD: ""
+  REDIS_PORT: "6379"
+  SECRET_KEY: super-long-random-secret
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: app-env
+  name: env

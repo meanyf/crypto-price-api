@@ -4,8 +4,8 @@ services:
   db:
     image: postgres:15
     container_name: crypto_postgres15
-    restart: always
-    environment:
+    restart: no
+    environment: 
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: crypto-db
@@ -17,7 +17,7 @@ services:
   redis:
     image: redis:7.2-alpine  # or redis:7.2, redis:7-alpine, redis:latest
     container_name: crypto_redis
-    restart: always
+    restart: no
     ports:
       - "6379:6379"
     volumes:
@@ -28,10 +28,9 @@ services:
     build: .
     container_name: crypto-fastapi
     
-    restart: unless-stopped
+    restart: no
     environment:
       - PYTHONUNBUFFERED=1
-    env_file: .env
     ports:
       - "8000:8000"
     volumes:
@@ -39,15 +38,18 @@ services:
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
       - ./templates:/app/templates
+      - ./.env.example:/app/.env.example
     depends_on:
       - db
       - redis
     command: >
+      sh -c "cp -n .env.example .env || true &&
+      alembic upgrade head &&
       uvicorn app.main:app
       --host 0.0.0.0
       --port 8000
       --reload
-      --reload-dir /app/app
+      --reload-dir /app/app"
 volumes:
   postgres_data:
   redis_data:

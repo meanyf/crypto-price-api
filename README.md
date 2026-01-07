@@ -135,12 +135,16 @@ JWT
 ├──.env.example
 └──.gitignore
 ```
-## Запуск 
+## Запуск через Docker
 
 ```bash
-cp .env.example .env
 docker-compose up --build
-docker-compose exec app alembic upgrade head 
+```
+
+## Запуск через Kubernetes
+
+```bash
+make start
 ```
 
 
