@@ -120,6 +120,22 @@ JWT
 │   ├──__init__.py
 │   ├──factory.py
 │   └──main.py
+├──k8s
+│   ├──migrations
+│   │   └──app-migrations.yaml
+│   ├──app-cm0-configmap.yaml
+│   ├──app-cm1-configmap.yaml
+│   ├──app-cm2-configmap.yaml
+│   ├──app-deployment.yaml
+│   ├──app-service.yaml
+│   ├──db-service.yaml
+│   ├──db-statefulset.yaml
+│   ├──Dockerfile
+│   ├──env-configmap.yaml
+│   ├──postgres-data-persistentvolumeclaim.yaml
+│   ├──redis-data-persistentvolumeclaim.yaml
+│   ├──redis-service.yaml
+│   └──redis-statefulset.yaml
 ├──templates
 │   ├──auth
 │   │   └──login.html
@@ -130,8 +146,10 @@ JWT
 ├──alembic.ini
 ├──docker-compose.yml
 ├──Dockerfile
+├──Makefile
 ├──README.md
 ├──requirements.txt
+├──.dockerignore
 ├──.env.example
 └──.gitignore
 ```
