@@ -44,6 +44,7 @@ services:
       - redis
     command: >
       sh -c "cp -n .env.example .env || true &&
+      dockerize -wait tcp://db:5432 -wait tcp://redis:6379 -timeout 60s &&
       alembic upgrade head &&
       uvicorn app.main:app
       --host 0.0.0.0

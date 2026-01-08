@@ -4,6 +4,17 @@ FROM python:3.11-slim
 # Устанавливаем рабочую директорию в контейнере
 WORKDIR /app
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Скачиваем dockerize (версия можно поменять)
+ENV DOCKERIZE_VERSION=v0.9.9
+RUN wget -O /tmp/dockerize.tar.gz "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz" && \
+    tar -C /usr/local/bin -xzvf /tmp/dockerize.tar.gz && \
+    rm /tmp/dockerize.tar.gz && \
+    chmod +x /usr/local/bin/dockerize
+
 # Копируем только requirements.txt, чтобы установить зависимости
 COPY requirements.txt .
 
